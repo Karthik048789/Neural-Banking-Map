@@ -1,0 +1,29 @@
+# ============================================================
+# Neural Banking Map — Backend Dependencies
+# ============================================================
+
+# -- Core API --
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+python-dotenv==1.0.1
+websockets==14.1
+
+# -- Graph Database --
+neo4j==5.27.0
+
+# -- Machine Learning --
+torch>=2.1.0
+torch-geometric>=2.5.0
+
+# -- Imbalanced Learning (SMOTE) --
+imbalanced-learn==0.12.4
+
+# -- LangChain Agent --
+langchain==0.3.14
+langchain-openai==0.3.0
+langchain-core==0.3.29
+
+# -- Utilities --
+httpx==0.28.1
+numpy>=1.24.0
