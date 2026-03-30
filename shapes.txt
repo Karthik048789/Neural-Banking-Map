@@ -1,0 +1,7 @@
+odict_keys(['conv1.lin_l.weight', 'conv1.lin_l.bias', 'conv1.lin_r.weight', 'conv2.lin_l.weight', 'conv2.lin_l.bias', 'conv2.lin_r.weight'])
+conv1.lin_l.weight: torch.Size([64, 11])
+conv1.lin_l.bias: torch.Size([64])
+conv1.lin_r.weight: torch.Size([64, 11])
+conv2.lin_l.weight: torch.Size([1, 64])
+conv2.lin_l.bias: torch.Size([1])
+conv2.lin_r.weight: torch.Size([1, 64])
