@@ -67,21 +67,21 @@ export const Dashboard = () => {
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="p-8 pb-12 space-y-8 max-w-[1600px] mx-auto"
+      className="p-4 md:p-8 pb-12 space-y-6 md:space-y-8 max-w-[1600px] mx-auto overflow-x-hidden"
     >
       {/* Header */}
-      <div className="flex justify-between items-end border-b border-border/40 pb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-border/40 pb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white/90">Threat Intelligence Dashboard</h1>
-          <p className="text-slate-400 text-sm mt-1 font-sans">Real-time UPI transaction monitoring across 228B node network</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white/90">Threat Intelligence Dashboard</h1>
+          <p className="text-slate-400 text-xs md:text-sm mt-1 font-sans max-w-md">Real-time UPI transaction monitoring across 228B node network</p>
         </div>
-        <div className="flex items-center gap-4 bg-surface/50 border border-border/60 rounded-full px-4 py-1.5 backdrop-blur-sm">
+        <div className="flex items-center gap-4 bg-surface/50 border border-border/60 rounded-full px-4 py-1.5 backdrop-blur-sm shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-safe animate-pulse" />
-            <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">System Online</span>
+            <span className="text-[9px] md:text-[10px] font-mono text-slate-400 uppercase tracking-widest">System Online</span>
           </div>
           <div className="w-px h-4 bg-border/50" />
-          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Refreshes in 5s</span>
+          <span className="text-[9px] md:text-[10px] font-mono text-slate-500 uppercase tracking-widest whitespace-nowrap">Refreshes in 5s</span>
           <RefreshCcw className="w-3 h-3 text-slate-500 animate-spin-slow" />
         </div>
       </div>
@@ -122,20 +122,20 @@ export const Dashboard = () => {
         
         {/* Chart Column */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-surface/40 border border-border/50 rounded-3xl p-8 backdrop-blur-md shadow-2xl relative overflow-hidden group">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-lg font-semibold text-slate-200 tracking-tight flex items-center gap-2">
+          <div className="bg-surface/40 border border-border/50 rounded-3xl p-4 md:p-8 backdrop-blur-md shadow-2xl relative overflow-hidden group">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+              <h3 className="text-base md:text-lg font-semibold text-slate-200 tracking-tight flex items-center gap-2">
                 <Activity className="w-4 h-4 text-accent" />
                 Network Velocity (Last 20 mins)
               </h3>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded bg-accent/40 border border-accent/60" />
-                  <span className="text-[10px] text-slate-400 font-mono uppercase">Volume</span>
+                  <span className="text-[9px] md:text-[10px] text-slate-400 font-mono uppercase">Volume</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded bg-fraud/40 border border-fraud/60" />
-                  <span className="text-[10px] text-slate-400 font-mono uppercase">Flagged</span>
+                  <span className="text-[9px] md:text-[10px] text-slate-400 font-mono uppercase">Flagged</span>
                 </div>
               </div>
             </div>

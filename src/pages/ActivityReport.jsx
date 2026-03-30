@@ -66,33 +66,33 @@ export const ActivityReport = () => {
   if (loading) return <LoadingSpinner label="Querying Neo4j Graph Database..." />;
 
   return (
-    <div className="p-8 max-w-[1600px] mx-auto min-h-screen">
-      <div className="flex justify-between items-center mb-10">
+    <div className="p-4 md:p-8 max-w-[1600px] mx-auto min-h-screen">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 md:mb-10 gap-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white/90">Fraudulent Activity Reports</h1>
-          <p className="text-slate-400 text-sm mt-1 font-sans">High-risk accounts flagged by GraphSAGE & Centrality algorithms</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white/90">Fraudulent Activity Reports</h1>
+          <p className="text-slate-400 text-xs md:text-sm mt-1 font-sans">High-risk accounts flagged by GraphSAGE & Centrality algorithms</p>
         </div>
-        <div className="flex items-center gap-4">
-          <button className="flex items-center gap-2 px-6 py-2 bg-slate-800 border border-border/50 text-slate-300 rounded-xl text-sm font-medium hover:bg-slate-700 transition-all">
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-slate-800 border border-border/50 text-slate-300 rounded-xl text-xs md:text-sm font-medium hover:bg-slate-700 transition-all">
             <Download className="w-4 h-4" /> Export CSV
           </button>
         </div>
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-surface/50 border border-border/50 rounded-2xl p-4 mb-8 flex items-center gap-6 backdrop-blur-md">
+      <div className="bg-surface/50 border border-border/50 rounded-2xl p-4 mb-8 flex flex-col md:flex-row items-stretch md:items-center gap-4 md:gap-6 backdrop-blur-md">
         <div className="relative flex-1 group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-accent transition-colors" />
           <input 
             type="text" 
-            placeholder="Search by Account ID or Device ID..."
+            placeholder="Search accounts..."
             className="w-full bg-slate-900/50 border border-border/50 rounded-xl pl-12 pr-4 py-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-accent/50 focus:border-accent/40 transition-all"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <button className="flex items-center gap-2 px-4 py-3 bg-slate-800/80 border border-border/50 rounded-xl text-slate-400 hover:text-white transition-all text-sm font-medium">
-          <Filter className="w-4 h-4" /> Filter By Risk
+        <button className="flex items-center justify-center gap-2 px-4 py-3 bg-slate-800/80 border border-border/50 rounded-xl text-slate-400 hover:text-white transition-all text-sm font-medium">
+          <Filter className="w-4 h-4" /> Filter
         </button>
       </div>
 
@@ -101,12 +101,12 @@ export const ActivityReport = () => {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-900/50 border-b border-border/50">
-              <th className="px-8 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Account ID</th>
-              <th className="px-8 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Risk Score</th>
-              <th className="px-8 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Nodes in Ring</th>
-              <th className="px-8 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Exposure</th>
-              <th className="px-8 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Time Detected</th>
-              <th className="px-8 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Status</th>
+              <th className="px-6 md:px-8 py-5 text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest">Account ID</th>
+              <th className="px-6 md:px-8 py-5 text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center sm:text-left">Risk</th>
+              <th className="px-6 md:px-8 py-5 text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest hidden lg:table-cell">Nodes in Ring</th>
+              <th className="px-6 md:px-8 py-5 text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest">Exposure</th>
+              <th className="px-6 md:px-8 py-5 text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest hidden md:table-cell">Time Detected</th>
+              <th className="px-6 md:px-8 py-5 text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -119,26 +119,26 @@ export const ActivityReport = () => {
                 onClick={() => handleRowClick(row.account_id)}
                 className="group border-b border-border/30 hover:bg-white/[0.02] cursor-pointer transition-all"
               >
-                <td className="px-8 py-5">
+                <td className="px-6 md:px-8 py-5">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-surface border border-border/50 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-lg bg-surface border border-border/50 flex items-center justify-center shrink-0">
                       <User className="w-4 h-4 text-slate-500 group-hover:text-accent transition-colors" />
                     </div>
-                    <span className="text-sm font-mono text-white group-hover:text-accent transition-colors">{row.account_id}</span>
+                    <span className="text-[10px] md:text-sm font-mono text-white group-hover:text-accent transition-colors truncate max-w-[80px] md:max-w-none">{row.account_id}</span>
                   </div>
                 </td>
-                <td className="px-8 py-5"><FraudBadge score={row.risk_score} /></td>
-                <td className="px-8 py-5"><span className="text-sm font-mono text-slate-300">{row.ring_size} Related Node(s)</span></td>
-                <td className="px-8 py-5"><span className="text-sm font-bold font-mono text-white">{formatCurrency(row.total_amount)}</span></td>
-                <td className="px-8 py-5"><span className="text-xs text-slate-500 font-sans">{new Date(row.timestamp).toLocaleString()}</span></td>
-                <td className="px-8 py-5 text-right">
+                <td className="px-6 md:px-8 py-5 text-center sm:text-left"><FraudBadge score={row.risk_score} /></td>
+                <td className="px-6 md:px-8 py-5 hidden lg:table-cell"><span className="text-sm font-mono text-slate-300">{row.ring_size} Related Node(s)</span></td>
+                <td className="px-6 md:px-8 py-5"><span className="text-sm font-bold font-mono text-white">{formatCurrency(row.total_amount)}</span></td>
+                <td className="px-6 md:px-8 py-5 hidden md:table-cell"><span className="text-xs text-slate-500 font-sans">{new Date(row.timestamp).toLocaleString()}</span></td>
+                <td className="px-6 md:px-8 py-5 text-right">
                   {row.is_frozen ? (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-fraud/10 text-fraud border border-fraud/20 rounded-md text-[9px] font-bold uppercase tracking-widest">
-                      <ShieldAlert className="w-3 h-3" /> Locked
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-fraud/10 text-fraud border border-fraud/20 rounded-md text-[8px] md:text-[9px] font-bold uppercase tracking-widest">
+                      <ShieldAlert className="w-3 h-3" /> <span className="hidden xs:inline">Locked</span>
                     </div>
                   ) : (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-800 text-slate-500 border border-border/50 rounded-md text-[9px] font-bold uppercase tracking-widest">
-                      <ShieldCheck className="w-3 h-3" /> Active
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-800 text-slate-500 border border-border/50 rounded-md text-[8px] md:text-[9px] font-bold uppercase tracking-widest">
+                      <ShieldCheck className="w-3 h-3" /> <span className="hidden xs:inline">Active</span>
                     </div>
                   )}
                 </td>
@@ -174,7 +174,7 @@ export const ActivityReport = () => {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 w-[550px] h-screen bg-surface border-l border-border/60 z-50 shadow-[-20px_0_40px_rgba(0,0,0,0.5)] flex flex-col"
+              className="fixed top-0 right-0 w-full md:w-[550px] h-screen bg-surface border-l border-border/60 z-50 shadow-[-20px_0_40px_rgba(0,0,0,0.5)] flex flex-col backdrop-blur-md bg-surface/95"
             >
               <div className="p-8 border-b border-border/40 flex justify-between items-center bg-slate-900/30">
                 <div className="flex items-center gap-4">
@@ -197,7 +197,7 @@ export const ActivityReport = () => {
               <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
                 
                 {/* Meta Grid */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="p-4 rounded-xl bg-slate-800/40 border border-border/50">
                     <div className="text-[9px] text-slate-500 uppercase font-bold tracking-widest mb-1">Risk Confidence</div>
                     <div className="text-2xl font-bold font-mono text-fraud">{selectedReport.confidence}%</div>
@@ -208,7 +208,7 @@ export const ActivityReport = () => {
                       "text-xs font-bold uppercase tracking-widest",
                       selectedReport.is_frozen ? "text-fraud" : "text-safe"
                     )}>
-                      {selectedReport.is_frozen ? "Frozen by LangChain" : "Monitoring active"}
+                      {selectedReport.is_frozen ? "Frozen & Locked" : "Monitoring active"}
                     </div>
                   </div>
                 </div>

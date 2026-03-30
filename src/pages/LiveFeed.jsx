@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Activity, 
@@ -17,8 +18,10 @@ import {
 import { toast, Toaster } from 'react-hot-toast';
 import { generateLiveTransaction } from '@/mocks/mockData';
 import { formatCurrency, cn } from '@/lib/utils';
+import { useMediaQuery } from '@/hooks/useMediaQuery'; // I'll create this helper
 
 export const LiveFeed = () => {
+  const navigate = useNavigate();
   const [transactions, setTransactions] = useState([]);
   const [connected, setConnected] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -54,7 +57,10 @@ export const LiveFeed = () => {
             </div>
             <div className="flex border-l border-border/40">
               <button 
-                onClick={() => toast.dismiss(t.id)}
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  navigate('/graph', { state: { fraudEvent: newTxn } });
+                }}
                 className="w-full border border-transparent rounded-none rounded-r-2xl p-4 flex items-center justify-center text-sm font-medium text-fraud hover:bg-fraud/5 focus:outline-none"
               >
                 INTERCEPT
@@ -71,30 +77,30 @@ export const LiveFeed = () => {
   }, [paused]);
 
   return (
-    <div className="p-8 max-w-[1600px] mx-auto flex h-[calc(100vh-2rem)] flex-col">
-      <Toaster position="top-right" />
+    <div className="p-4 md:p-8 max-w-[1600px] mx-auto flex h-full md:h-[calc(100vh-2rem)] flex-col gap-6">
+      <Toaster position={window.innerWidth < 768 ? "bottom-center" : "top-right"} />
       
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-2">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white/90">Live Transaction Stream</h1>
-          <p className="text-slate-400 text-sm mt-1 font-sans">Raw network telemetry from edge nodes via WebSocket</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white/90">Live Transaction Stream</h1>
+          <p className="text-slate-400 text-xs md:text-sm mt-1 font-sans">Raw network telemetry from edge nodes via WebSocket</p>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
           <button 
             onClick={() => setPaused(!paused)}
             className={cn(
-              "flex items-center gap-2 px-6 py-2 border rounded-xl text-xs font-bold uppercase tracking-widest transition-all",
+              "flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-6 py-2 border rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all",
               paused ? "bg-warning/10 border-warning/40 text-warning" : "bg-slate-800 border-border/50 text-slate-400 hover:text-white"
             )}
           >
-            {paused ? "RESUME STREAM" : "PAUSE STREAM"}
+            {paused ? "RESUME" : "PAUSE"}
           </button>
           
-          <div className="bg-surface/50 border border-border/50 rounded-xl px-4 py-2 flex items-center gap-3">
-            <div className={cn("w-2.5 h-2.5 rounded-full", connected ? "bg-safe shadow-[0_0_8px_#10B981]" : "bg-fraud")} />
-            <span className="text-[10px] font-bold text-slate-300 font-mono tracking-widest uppercase">
-              {connected ? "Gateway Connected" : "Connection Lost"}
+          <div className="flex-1 md:flex-none bg-surface/50 border border-border/50 rounded-xl px-4 py-2 flex items-center justify-center gap-3">
+            <div className={cn("w-2 h-2 md:w-2.5 md:h-2.5 rounded-full", connected ? "bg-safe shadow-[0_0_8px_#10B981]" : "bg-fraud")} />
+            <span className="text-[9px] md:text-[10px] font-bold text-slate-300 font-mono tracking-widest uppercase whitespace-nowrap">
+              {connected ? "Gateway Active" : "Offline"}
             </span>
           </div>
         </div>
@@ -107,13 +113,13 @@ export const LiveFeed = () => {
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 bg-[#162136] z-20 border-b border-border/60">
               <tr>
-                <th className="px-8 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Timestamp</th>
-                <th className="px-8 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Transaction ID</th>
-                <th className="px-8 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Type</th>
-                <th className="px-8 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Amount</th>
-                <th className="px-8 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Account ID</th>
-                <th className="px-8 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Risk Index</th>
-                <th className="px-8 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Status</th>
+                <th className="px-6 md:px-8 py-5 text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest">Timestamp</th>
+                <th className="px-6 md:px-8 py-5 text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest hidden sm:table-cell">Transaction ID</th>
+                <th className="px-6 md:px-8 py-5 text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Type</th>
+                <th className="px-6 md:px-8 py-5 text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right sm:text-left">Amount</th>
+                <th className="px-6 md:px-8 py-5 text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest">Account ID</th>
+                <th className="px-6 md:px-8 py-5 text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest hidden md:table-cell">Risk Index</th>
+                <th className="px-6 md:px-8 py-5 text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/20">
@@ -135,25 +141,25 @@ export const LiveFeed = () => {
                         {new Date(txn.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </div>
                     </td>
-                    <td className="px-8 py-4">
-                      <span className="text-xs font-mono text-slate-300 group-hover:text-white transition-colors">{txn.txn_id}</span>
+                    <td className="px-6 md:px-8 py-4 hidden sm:table-cell">
+                      <span className="text-[10px] md:text-xs font-mono text-slate-300 group-hover:text-white transition-colors">{txn.txn_id}</span>
                     </td>
-                    <td className="px-8 py-4 text-center">
+                    <td className="px-6 md:px-8 py-4 text-center">
                       <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-slate-800 text-slate-400 rounded-md text-[8px] font-bold font-sans">
                         <CreditCard className="w-2.5 h-2.5" />
                         {txn.type}
                       </div>
                     </td>
-                    <td className="px-8 py-4">
-                      <span className="text-sm font-bold font-mono text-white">{formatCurrency(txn.amount)}</span>
+                    <td className="px-6 md:px-8 py-4 text-right sm:text-left">
+                      <span className="text-[11px] md:text-sm font-bold font-mono text-white">{formatCurrency(txn.amount)}</span>
                     </td>
-                    <td className="px-8 py-4">
+                    <td className="px-6 md:px-8 py-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono text-slate-300">{txn.upi_id}</span>
-                        <ExternalLink className="w-3 h-3 text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-accent" />
+                        <span className="text-[10px] md:text-xs font-mono text-slate-300">{txn.upi_id}</span>
+                        <ExternalLink className="w-3 h-3 text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-accent hidden sm:block" />
                       </div>
                     </td>
-                    <td className="px-8 py-4">
+                    <td className="px-6 md:px-8 py-4 hidden md:table-cell">
                       <div className="flex flex-col gap-1 w-24">
                         <div className="flex justify-between text-[8px] font-mono uppercase tracking-tighter">
                           <span className={txn.is_fraud ? "text-fraud" : "text-slate-500"}>Score</span>
@@ -171,14 +177,14 @@ export const LiveFeed = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-8 py-4 text-right">
+                    <td className="px-6 md:px-8 py-4 text-right">
                       {txn.is_fraud ? (
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-fraud text-white rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-fraud/20">
-                          <ShieldAlert className="w-3.5 h-3.5" /> FRAUD
+                        <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 bg-fraud text-white rounded-xl text-[9px] md:text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-fraud/20">
+                          <ShieldAlert className="w-3.5 h-3.5" /> <span className="hidden xs:inline">FRAUD</span>
                         </div>
                       ) : (
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-surface border border-safe/20 text-safe rounded-xl text-[10px] font-bold uppercase tracking-widest">
-                          <ShieldCheck className="w-3.5 h-3.5" /> SAFE
+                        <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 bg-surface border border-safe/20 text-safe rounded-xl text-[9px] md:text-[10px] font-bold uppercase tracking-widest">
+                          <ShieldCheck className="w-3.5 h-3.5" /> <span className="hidden xs:inline">SAFE</span>
                         </div>
                       )}
                     </td>

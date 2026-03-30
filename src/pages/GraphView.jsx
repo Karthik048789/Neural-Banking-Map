@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ForceGraph2D from 'react-force-graph-2d';
 import { 
@@ -9,11 +10,19 @@ import {
   Zap, 
   LayoutList,
   Info,
-  Play
+  Play,
+  FileText,
+  X,
+  Download,
+  History,
+  CreditCard,
+  Loader2
 } from 'lucide-react';
 import { getGraphFraud } from '@/api/client';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { mockReport } from '@/mocks/mockData';
 import { formatCurrency, cn } from '@/lib/utils';
+import { toast, Toaster } from 'react-hot-toast';
 
 const COLORS = {
   MASTERMIND: '#FF2D2D',
@@ -26,11 +35,79 @@ const COLORS = {
 };
 
 export const GraphView = () => {
+  const location = useLocation();
   const fgRef = useRef();
+  const containerRef = useRef(null);
+  const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [loading, setLoading] = useState(true);
   const [selectedNode, setSelectedNode] = useState(null);
   const [simulationActive, setSimulationActive] = useState(false);
+  const [isFrozen, setIsFrozen] = useState(false);
+  const [incidentData, setIncidentData] = useState(null);
+  const [isGeneratingSAR, setIsGeneratingSAR] = useState(false);
+  const [sarReport, setSarReport] = useState(null);
+  const [showSARModal, setShowSARModal] = useState(false);
+
+  // Resize handler
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        setDimensions({
+          width: entry.contentRect.width,
+          height: entry.contentRect.height,
+        });
+      }
+    });
+    resizeObserver.observe(containerRef.current);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (location.state?.fraudEvent) {
+      setIncidentData(location.state.fraudEvent);
+      // Auto-trigger simulation or show graph for the specific event
+    }
+  }, [location.state]);
+
+  const handleFreeze = () => {
+    setIsFrozen(true);
+    toast.success(`Account ${incidentData?.upi_id || selectedNode?.id || "MASTER_ID_X"} frozen successfully.`, {
+      style: {
+        background: '#1E293B',
+        color: '#10B981',
+        border: '1px solid #10B981',
+      },
+    });
+  };
+
+  const handleGenerateSAR = async () => {
+    const targetId = selectedNode?.id || incidentData?.upi_id || "MASTER_ID_X";
+    setIsGeneratingSAR(true);
+    
+    const toastId = toast.loading("Compiling transaction footprints...", {
+      style: { background: '#1E293B', color: '#94A3B8', border: '1px solid #334155' }
+    });
+
+    try {
+      // Simulate AI Narrative Generation
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const report = mockReport(targetId);
+      setSarReport(report);
+      setShowSARModal(true);
+      
+      toast.success("SAR Intelligence Draft Generated", {
+        id: toastId,
+        style: { background: '#1E293B', color: '#8B5CF6', border: '1px solid #8B5CF6' }
+      });
+    } catch (err) {
+      toast.error("Failed to compile narrative", { id: toastId });
+    } finally {
+      setIsGeneratingSAR(false);
+    }
+  };
 
   const fetchGraph = useCallback(async () => {
     try {
@@ -71,7 +148,8 @@ export const GraphView = () => {
   const isEmpty = graphData.nodes.length === 0;
 
   return (
-    <div className="flex h-[calc(100vh-2rem)] overflow-hidden relative">
+    <div className="flex h-full md:h-[calc(100vh-2rem)] overflow-hidden relative" ref={containerRef}>
+      <Toaster position="top-right" />
       
       {/* Graph Area */}
       <div className="flex-1 relative bg-[#0B1120]">
@@ -92,6 +170,8 @@ export const GraphView = () => {
           <ForceGraph2D
             ref={fgRef}
             graphData={graphData}
+            width={dimensions.width}
+            height={dimensions.height}
             nodeLabel="id"
             nodeColor={(node) => {
               if (node.role === 'mastermind') return COLORS.MASTERMIND;
@@ -139,8 +219,8 @@ export const GraphView = () => {
         )}
 
         {/* Overlay Controls */}
-        <div className="absolute top-6 left-6 space-y-4">
-          <div className="bg-surface/80 border border-white/10 backdrop-blur-md p-4 rounded-2xl shadow-2xl">
+        <div className="absolute top-4 left-4 md:top-6 md:left-6 space-y-4 z-30">
+          <div className="bg-surface/80 border border-white/10 backdrop-blur-md p-3 md:p-4 rounded-2xl shadow-2xl max-w-[200px] md:max-w-none">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 rounded-lg bg-fraud/20 flex items-center justify-center">
                 <ShieldAlert className="w-5 h-5 text-fraud" />
@@ -172,7 +252,7 @@ export const GraphView = () => {
         </div>
 
         {/* Legend */}
-        <div className="absolute bottom-6 left-6 flex gap-6 bg-surface/80 border border-white/10 backdrop-blur-md px-6 py-3 rounded-full shadow-2xl">
+        <div className="absolute bottom-4 left-4 right-4 md:right-auto md:bottom-6 md:left-6 flex flex-wrap gap-3 md:gap-6 bg-surface/80 border border-white/10 backdrop-blur-md px-4 py-2.5 md:px-6 md:py-3 rounded-2xl md:rounded-full shadow-2xl z-30">
           {Object.entries(COLORS).map(([key, color]) => (
             <div key={key} className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
@@ -191,10 +271,10 @@ export const GraphView = () => {
       <AnimatePresence>
         {selectedNode || !isEmpty ? (
           <motion.div 
-            initial={{ x: 350 }}
+            initial={{ x: 400 }}
             animate={{ x: 0 }}
-            exit={{ x: 350 }}
-            className="w-80 bg-surface border-l border-border/60 p-6 shadow-2xl z-20 flex flex-col"
+            exit={{ x: 400 }}
+            className="absolute top-0 right-0 h-full w-full max-w-[320px] bg-surface border-l border-border/60 p-6 shadow-2xl z-40 flex flex-col backdrop-blur-md bg-surface/90"
           >
             <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-3">
               <Info className="w-5 h-5 text-accent" />
@@ -211,9 +291,19 @@ export const GraphView = () => {
                     <div className="text-3xl font-bold font-mono text-fraud mt-1">98.4%</div>
                   </div>
                   <div className="w-12 h-12 rounded-xl bg-fraud/10 flex items-center justify-center border border-fraud/20">
-                    <Zap className="w-6 h-6 text-fraud" />
+                    <Zap className={cn("w-6 h-6", isFrozen ? "text-safe" : "text-fraud")} />
                   </div>
                 </div>
+
+                {isFrozen && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-2 bg-safe/10 border border-safe/20 rounded-lg text-center"
+                  >
+                    <span className="text-[10px] font-bold text-safe uppercase tracking-[0.2em]">Account Frozen & Secured</span>
+                  </motion.div>
+                )}
 
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/20">
                   <div>
@@ -257,11 +347,29 @@ export const GraphView = () => {
 
               {/* Action Buttons */}
               <div className="pt-6 space-y-3">
-                <button className="w-full py-3 bg-fraud text-white text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-fraud/80 transition-all shadow-lg shadow-fraud/10">
-                  Initiate Auto-Freeze
+                <button 
+                  onClick={handleFreeze}
+                  disabled={isFrozen}
+                  className={cn(
+                    "w-full py-3 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg",
+                    isFrozen 
+                      ? "bg-safe/50 cursor-not-allowed border border-safe/30 text-safe-foreground" 
+                      : "bg-fraud hover:bg-fraud/80 shadow-fraud/10"
+                  )}
+                >
+                  {isFrozen ? "Account Frozen" : "Initiate Auto-Freeze"}
                 </button>
-                <button className="w-full py-3 bg-surface border border-border/80 text-slate-300 text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all">
-                  Generate SAR Draft
+                <button 
+                  onClick={handleGenerateSAR}
+                  disabled={isGeneratingSAR}
+                  className="w-full py-3 bg-surface border border-border/80 text-slate-300 text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                >
+                  {isGeneratingSAR ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <FileText className="w-4 h-4" />
+                  )}
+                  {isGeneratingSAR ? "Compiling Draft..." : "Generate SAR Draft"}
                 </button>
               </div>
             </div>
@@ -276,6 +384,108 @@ export const GraphView = () => {
             </div>
           </motion.div>
         ) : null}
+      </AnimatePresence>
+      {/* SAR Report Modal */}
+      <AnimatePresence>
+        {showSARModal && sarReport && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowSARModal(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+            
+            <motion.div 
+              initial={{ scale: 0.9, y: 20, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.9, y: 20, opacity: 0 }}
+              className="relative w-full max-w-2xl bg-surface border border-border/60 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              <div className="p-6 border-b border-border/40 flex justify-between items-center bg-slate-900/30">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-fraud/10 border border-fraud/20 rounded-xl flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-fraud" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-white tracking-tight">Financial Intelligence Report</h2>
+                    <p className="text-[10px] text-slate-500 font-mono uppercase tracking-widest">ID: {sarReport.account_id}</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowSARModal(false)}
+                  className="p-2 hover:bg-white/5 rounded-full transition-colors text-slate-500"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
+                
+                {/* Meta Summary */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-xl bg-slate-800/40 border border-border/50">
+                    <div className="text-[9px] text-slate-500 uppercase font-bold tracking-widest mb-1">Risk Confidence</div>
+                    <div className="text-2xl font-bold font-mono text-fraud">{sarReport.confidence}%</div>
+                  </div>
+                  <div className="p-4 rounded-xl bg-slate-800/40 border border-border/50 flex flex-col justify-center">
+                    <div className="text-[9px] text-slate-500 uppercase font-bold tracking-widest mb-1">Status</div>
+                    <div className={cn(
+                      "text-xs font-bold uppercase tracking-widest",
+                      isFrozen ? "text-fraud" : "text-safe"
+                    )}>
+                      {isFrozen ? "Account Frozen & Secured" : "Monitoring active"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* SAR Narrative */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-slate-300 font-medium">
+                    <History className="w-4 h-4 text-accent" />
+                    <span className="text-sm">Automated Narrative Analysis</span>
+                  </div>
+                  <div className="p-6 rounded-2xl bg-black/40 border border-border/40 font-mono text-[11px] text-slate-300 leading-relaxed whitespace-pre-wrap shadow-inner">
+                    {sarReport.sar_draft}
+                  </div>
+                </div>
+
+                {/* Related Nodes Summary */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-slate-300 font-medium">
+                    <CreditCard className="w-4 h-4 text-accent" />
+                    <span className="text-sm">Ring Nodes Summary</span>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-surface border border-border/40 space-y-2">
+                    {sarReport.ring_nodes.map((node, i) => (
+                      <div key={node} className="flex items-center justify-between py-2 border-b border-border/20 last:border-0 opacity-80">
+                        <span className="text-xs font-mono text-white">{node}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] text-slate-500 uppercase">Weight</span>
+                          <span className="text-[10px] font-mono text-accent">0.{(9 - i).toString().repeat(2)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-border/40 bg-slate-900/30">
+                <button 
+                  onClick={() => {
+                    toast.success("SAR Report exported as neural_sar_draft.pdf", {
+                      style: { background: '#1E293B', color: '#10B981', border: '1px solid #10B981' }
+                    });
+                  }}
+                  className="w-full py-4 bg-accent text-white rounded-2xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-3 hover:bg-accent/80 transition-all shadow-xl shadow-accent/20"
+                >
+                  <Download className="w-4 h-4" /> Download Official PDF
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
     </div>
   );

@@ -33,7 +33,7 @@ function App() {
         <Sidebar />
 
         {/* Main Content Area */}
-        <main className="flex-1 h-screen overflow-y-auto overflow-x-hidden relative scroll-smooth custom-scrollbar">
+        <main className="flex-1 h-screen overflow-y-auto overflow-x-hidden relative scroll-smooth custom-scrollbar mt-16 md:mt-0">
           {/* Subtle noise/grid overlay can be added here if needed */}
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />

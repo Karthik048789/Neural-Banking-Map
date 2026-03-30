@@ -36,10 +36,10 @@ export const mockReport = (id) => ({
   sar_draft: `SUSPICIOUS ACTIVITY REPORT (SAR) - DRAFT
 -----------------------------------------
 ENTITY: ${id || "upi_7721_alpha"}
-DETECTION TIME: ${timestamp||"2024-03-30 10:15:00"}
+DETECTION TIME: ${id === "upi_7721_alpha" ? "2024-03-30 10:15:00" : new Date().toLocaleString()}
 CONFIDENCE SCORE: 98.4%
-PATTERN DETECTED: ${ring_nodes||"Circular Transfer (A->B->C->A)"}
-TOTAL EXPOSURE: ${total_amount||"₹3,42,000.50"}
+PATTERN DETECTED: Circular Transfer (A->B->C->A)
+TOTAL EXPOSURE: ₹3,42,000.50
 
 NARRATIVE:
 The system detected a high-confidence circular fraud ring involving two 
