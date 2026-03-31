@@ -72,7 +72,10 @@ export const GraphView = () => {
 
   const handleFreeze = () => {
     setIsFrozen(true);
-    toast.success(`Account ${incidentData?.upi_id || selectedNode?.id || "MASTER_ID_X"} frozen successfully.`, {
+    const authId = selectedNode?.id || incidentData?.upi_id || (graphData.nodes.length > 0 ? graphData.nodes[0].id : null);
+    if (!authId) return toast.error("No active fraud nodes found to freeze.");
+    
+    toast.success(`Account ${authId} frozen successfully.`, {
       style: {
         background: '#1E293B',
         color: '#10B981',
@@ -82,7 +85,8 @@ export const GraphView = () => {
   };
 
   const handleGenerateSAR = async () => {
-    const targetId = selectedNode?.id || incidentData?.upi_id || "MASTER_ID_X";
+    const targetId = selectedNode?.id || incidentData?.upi_id || (graphData.nodes.length > 0 ? graphData.nodes[0].id : null);
+    if (!targetId) return toast.error("Graph is currently empty. No entities to map.");
     setIsGeneratingSAR(true);
     
     const toastId = toast.loading("Compiling transaction footprints...", {

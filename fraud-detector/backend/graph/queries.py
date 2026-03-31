@@ -334,6 +334,7 @@ def get_account_report(account_id: str) -> dict[str, Any]:
     WITH u, [n IN nodes(ring_path) | n.id] AS ring_nodes
     OPTIONAL MATCH (u)-[r:TRANSFERRED_TO]->(target)
     RETURN u.id AS account_id,
+           COALESCE(u.risk_score, 0.0) AS confidence,
            u.is_frozen AS is_frozen,
            ring_nodes,
            collect({to: target.id, amount: r.amount, isCycle: r.is_fraud}) AS edges
@@ -351,7 +352,7 @@ def get_account_report(account_id: str) -> dict[str, Any]:
                 "ring_nodes": ring,
                 "edges": record["edges"],
                 "sar_draft": "",
-                "confidence": 0.0,
+                "confidence": record["confidence"],
                 "is_frozen": record["is_frozen"] or False,
             }
     except Exception as exc:

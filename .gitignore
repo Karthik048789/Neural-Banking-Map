@@ -1,0 +1,11 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build/Cache files
+__pycache__/
+*.pyc
+
+# Local SAR reports
+fraud-detector/backend/sars_reports/

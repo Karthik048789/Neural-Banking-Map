@@ -169,6 +169,16 @@ froze the account and all linked payment devices.
          END OF REPORT — Neural Banking Map
 ══════════════════════════════════════════════════════════════
 """.strip()
+    
+    # Automatically store SAR in a folder
+    try:
+        os.makedirs("sars_reports", exist_ok=True)
+        filename = f"sars_reports/SAR_{account_id}_FRZN.txt"
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write(sar)
+    except Exception as e:
+        logger.error(f"Failed to save SAR report to folder: {e}")
+        
     return sar
 
 

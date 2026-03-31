@@ -26,29 +26,39 @@ import { StatCard } from '@/components/StatCard';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { formatCurrency, formatNumber, cn } from '@/lib/utils';
 
-// Mock trend data for the chart
-const generateTrendData = () => 
-  Array.from({ length: 20 }, (_, i) => ({
-    time: `${i}:00`,
-    txns: Math.floor(Math.random() * 5000) + 2000,
-    fraud: Math.floor(Math.random() * 50),
-  }));
+// Initialize empty trend data for the chart
+const initialTrendData = Array.from({ length: 20 }, (_, i) => ({
+  time: '',
+  txns: 0,
+  fraud: 0,
+}));
 
 export const Dashboard = () => {
   const [stats, setStats] = useState(null);
-  const [trendData, setTrendData] = useState(generateTrendData());
+  const [trendData, setTrendData] = useState(initialTrendData);
+  const [prevStats, setPrevStats] = useState({ txns: 0, fraud: 0 });
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     try {
       const data = await getStats();
       setStats(data);
-      // Update trend data slightly for animation effect
-      setTrendData(prev => [...prev.slice(1), {
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        txns: Math.floor(Math.random() * 5000) + 2000,
-        fraud: Math.floor(Math.random() * 50),
-      }]);
+      
+      setPrevStats(prev => {
+        // Calculate the delta in transactions since the last 5-second tick
+        const txDelta = prev.txns > 0 ? Math.max(0, data.total_txns - prev.txns) : 0;
+        const fraudDelta = prev.fraud > 0 ? Math.max(0, data.fraud_count - prev.fraud) : 0;
+        
+        if (prev.txns > 0) {
+          setTrendData(currentTrend => [...currentTrend.slice(1), {
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+            txns: txDelta,
+            fraud: fraudDelta,
+          }]);
+        }
+        return { txns: data.total_txns, fraud: data.fraud_count };
+      });
+      
       setLoading(false);
     } catch (err) {
       console.error(err);
@@ -126,7 +136,7 @@ export const Dashboard = () => {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
               <h3 className="text-base md:text-lg font-semibold text-slate-200 tracking-tight flex items-center gap-2">
                 <Activity className="w-4 h-4 text-accent" />
-                Network Velocity (Last 20 mins)
+                Network Velocity (Live Delta)
               </h3>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
@@ -167,7 +177,7 @@ export const Dashboard = () => {
                     fontSize={10} 
                     tickLine={false} 
                     axisLine={false} 
-                    tickFormatter={(val) => `${val/1000}k`}
+                    tickFormatter={(val) => val}
                   />
                   <Tooltip 
                     contentStyle={{ backgroundColor: '#1E293B', border: '1px solid #334155', borderRadius: '12px' }}

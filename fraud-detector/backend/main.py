@@ -19,6 +19,7 @@ import time
 import random
 import asyncio
 import logging
+import threading
 from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator
@@ -55,8 +56,37 @@ from agent.langchain_agent import init_agent, run_fraud_agent
 # ────────────────────────────────────────────────────────────
 # Configuration
 # ────────────────────────────────────────────────────────────
-
 load_dotenv()
+
+# ────────────────────────────────────────────────────────────
+# Twilio Integration (Fraud Account SMS Alerts)
+# ────────────────────────────────────────────────────────────
+from twilio.rest import Client
+
+TWILIO_SID = os.getenv("TWILIO_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_PHONE = os.getenv("TWILIO_PHONE")
+DESTINATION_PHONE = os.getenv("DESTINATION_PHONE")
+
+_sms_alerted_accounts = set()
+
+def send_fraud_sms(account_id: str, amount: float, confidence: float):
+    """Sends exactly ONE alert per flagged account so the phone isn't spammed."""
+    if account_id in _sms_alerted_accounts:
+        return
+    _sms_alerted_accounts.add(account_id)
+    try:
+        client = Client(TWILIO_SID, TWILIO_AUTH_TOKEN)
+        msg_body = f"NeuralBank ALERT: Froze suspicious account {account_id}. Amt: Rs.{amount:,.0f}. Risk: {confidence*100:.0f}%. SAR filed."
+        message = client.messages.create(body=msg_body, from_=TWILIO_PHONE, to=DESTINATION_PHONE)
+        logger.info(f"📱 Sent Twilio SMS to {DESTINATION_PHONE} | SID: {message.sid}")
+    except Exception as e:
+        logger.error(f"Failed to send Twilio SMS: {e}")
+
+# ────────────────────────────────────────────────────────────
+# Configuration
+# ────────────────────────────────────────────────────────────
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s │ %(name)-30s │ %(levelname)-7s │ %(message)s",
@@ -309,6 +339,9 @@ async def process_transaction(req: TransactionRequest) -> TransactionResponse:
     device_frozen = False
 
     if is_fraud:
+        # Trigger background SMS alert
+        threading.Thread(target=send_fraud_sms, args=(req.upi_id, req.amount, confidence), daemon=True).start()
+
         # Detect cycles involving this account
         cycles = detect_cycles(req.upi_id)
         if cycles:
